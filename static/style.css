@@ -1,0 +1,87 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    width: 100%;
+    padding: 40px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: #667eea;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+main {
+    margin-bottom: 30px;
+}
+
+main > p {
+    font-size: 1.2em;
+    color: #555;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+}
+
+.card h2 {
+    color: #764ba2;
+    margin-bottom: 15px;
+}
+
+.card ul {
+    list-style: none;
+}
+
+.card li {
+    padding: 10px 0;
+    color: #333;
+    font-size: 1.1em;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.card li:last-child {
+    border-bottom: none;
+}
+
+.card li::before {
+    content: "✓ ";
+    color: #667eea;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 2px solid #e0e0e0;
+    color: #777;
+}
