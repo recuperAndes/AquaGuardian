@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reportar incidente – Entidades oficiales</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="sa-header">
+  <div class="sa-header-left">
+    <img src="{{ url_for('static', filename='img/logo-sensor-andino.png') }}" 
+         alt="Logo AquaGuardian" class="sa-logo-small">
+    <span class="sa-logo-text">AquaGuardian</span>
+    <nav class="sa-nav">
+      <a href="{{ url_for('index') }}">Inicio</a>
+      <a href="{{ url_for('mapa') }}">Mapa Santurbán</a>
+    </nav>
+  </div>
+</header>
+
+<main class="sa-hero" style="grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr);">
+  <section class="sa-hero-content">
+    <h1>Reporte técnico de calidad del agua</h1>
+    <p class="sa-hero-text">
+      Solo <strong>entidades ambientales autorizadas</strong> pueden registrar incidentes.
+      La información que ingreses aquí activará alertas de correo electrónico de forma automática
+      a los habitantes del municipio afectado.
+    </p>
+
+    {% if mensaje %}
+      <div class="sa-alert {% if tipo == 'ok' %}sa-alert-ok{% else %}sa-alert-error{% endif %}">
+        {{ mensaje }}
+      </div>
+    {% endif %}
+
+    <form method="POST" class="sa-info-card" style="border-left:none;">
+      <h2>Identificación de la entidad</h2>
+
+      <label for="org">Organización</label><br>
+      <select id="org" name="org" required
+              style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+        <option value="" disabled selected>Selecciona tu entidad</option>
+        <option value="Danna1">Danna1</option>
+        <option value="Loewens2">Loewens2</option>
+        <option value="Tein3">Tein3</option>
+        <option value="CBU4">CBU4</option>
+        <option value="ResolviendoRetos">ResolviendoRetos</option>
+      </select>
+
+      <label for="nombre">Nombre del funcionario</label><br>
+      <input type="text" id="nombre" name="nombre" required
+             style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+
+      <label for="email">Correo institucional</label><br>
+      <input type="email" id="email" name="email" required
+             style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+
+      <label for="codigo">Código de seguridad de la entidad</label><br>
+      <input type="password" id="codigo" name="codigo" required
+             style="width:100%; padding:8px 10px; margin:4px 0 18px; border-radius:8px; border:1px solid #cdd9e3;">
+
+      <h2>Datos técnicos del incidente</h2>
+
+      <label for="municipio_alerta">Municipio afectado</label><br>
+      <select id="municipio_alerta" name="municipio_alerta" required
+              style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+        {% for m in municipios_disponibles %}
+          <option value="{{ m }}">{{ m }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="incidente">Tipo de incidente</label><br>
+      <input type="text" id="incidente" name="incidente" placeholder="Ej. Aumento de turbidez por lluvias" required
+             style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+
+      <label for="nivel">Nivel de alerta</label><br>
+      <select id="nivel" name="nivel" required
+              style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+        <option value="Información">Información</option>
+        <option value="Precaución">Precaución</option>
+        <option value="Alerta">Alerta</option>
+        <option value="Emergencia">Emergencia</option>
+      </select>
+
+      <label for="descripcion">Descripción técnica (pH, turbidez, metales…)</label><br>
+      <textarea id="descripcion" name="descripcion" rows="5"
+                placeholder="Ej. pH: 5.8 (ligeramente ácido). Turbidez: 8 NTU. Hierro por encima del valor de referencia..."
+                required
+                style="width:100%; padding:8px 10px; margin:4px 0 16px; border-radius:8px; border:1px solid #cdd9e3;"></textarea>
+
+      <button type="submit" class="sa-btn sa-btn-primary">
+        Registrar incidente y enviar alertas
+      </button>
+    </form>
+  </section>
+
+  <aside class="sa-hero-info">
+    <article class="sa-info-card">
+      <h2>¿Qué ve la ciudadanía?</h2>
+      <p>
+        El correo que reciben las personas <strong>traduce estos datos técnicos</strong>
+        a un lenguaje sencillo (ej. “el agua está más ácida de lo normal”).
+      </p>
+      <p>
+        Además, incluye un enlace a un <strong>afiche educativo</strong> donde se explica
+        qué es el pH, qué significa la turbidez y por qué son importantes.
+      </p>
+    </article>
+  </aside>
+</main>
+
+<footer class="sa-footer">
+  Panel de entidades oficiales · AquaGuardian
+</footer>
+
+</body>
+</html>

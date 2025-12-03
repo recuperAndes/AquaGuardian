@@ -1,22 +1,109 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Andino</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>AquaGuardian – Monitoreo del agua en Santurbán</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>Sensor Andino</h1>
-    </header>
-    
-    <main>
-        <p>Welcome to Sensor Andino</p>
-    </main>
-    
-    <footer>
-        <p>&copy; 2025 Sensor Andino</p>
-    </footer>
+
+  <!-- HEADER FIJO -->
+  <header class="sa-header">
+    <div class="sa-header-left">
+      <img src="{{ url_for('static', filename='img/logo-sensor-andino.png') }}" 
+           alt="Logo AquaGuardian" class="sa-logo-small">
+      <span class="sa-logo-text">AquaGuardian</span>
+      <nav class="sa-nav">
+        <a href="{{ url_for('index') }}">Inicio</a>
+        <a href="{{ url_for('estado') }}">Estado del agua</a>
+        <a href="{{ url_for('mapa') }}">Mapa Santurbán</a>
+        <a href="{{ url_for('alertas_new') }}">Alertas recientes</a>
+        <a href="{{ url_for('login') }}">Registrarme</a>
+        <a href="{{ url_for('report_new') }}">Entidades oficiales</a>
+      </nav>
+    </div>
+
+    {% if user_email %}
+      <div style="font-size:0.85rem;">
+        Conectado como <strong>{{ user_email }}</strong> ·
+        <a href="{{ url_for('logout') }}" style="color:#e0f7fa; text-decoration:none;">Cerrar sesión</a>
+      </div>
+    {% else %}
+      <div style="font-size:0.85rem;">
+        <a href="{{ url_for('login') }}" style="color:#e0f7fa; text-decoration:none;">Iniciar sesión / Registrarme</a>
+      </div>
+    {% endif %}
+  </header>
+
+  <!-- HERO PRINCIPAL -->
+  <main class="sa-hero">
+    <section class="sa-hero-content">
+      <img src="{{ url_for('static', filename='img/logo-sensor-andino.png') }}" 
+           alt="AquaGuardian logo" class="sa-logo-main">
+
+      <h1>
+        Monitoreo ciudadano del agua<br>
+        <span>Páramo de Santurbán</span>
+      </h1>
+
+      <p class="sa-hero-text">
+        AquaGuardian integra datos de sensores ambientales e información oficial
+        para que los habitantes de Santander conozcan, en tiempo real, la calidad del agua
+        que llega a sus casas desde el Páramo de Santurbán.
+      </p>
+
+      <div class="sa-hero-buttons">
+        <a href="{{ url_for('estado') }}" class="sa-btn sa-btn-primary">
+          Ver estado del agua
+        </a>
+        <a href="{{ url_for('mapa') }}" class="sa-btn sa-btn-secondary">
+          Ver mapa de monitoreo
+        </a>
+      </div>
+
+      <div class="sa-hero-links">
+        <a href="{{ url_for('alertas_new') }}" class="sa-link">Ver alertas recientes</a>
+        <span>·</span>
+        <a href="{{ url_for('report_new') }}" class="sa-link">Reportar incidente (entidades oficiales)</a>
+      </div>
+    </section>
+
+    <!-- TARJETAS INFORMATIVAS DERECHA -->
+    <aside class="sa-hero-info">
+      <article class="sa-info-card">
+        <h2>¿Eres habitante de la región?</h2>
+        <p>
+          Regístrate con tu <strong>correo</strong> y tu <strong>municipio</strong> para recibir
+          alertas solo cuando un incidente afecte directamente tu zona.
+        </p>
+        <a href="{{ url_for('login') }}" class="sa-btn sa-btn-primary">Registrarme como ciudadano</a>
+      </article>
+
+      <article class="sa-info-card">
+        <h2>¿Eres autoridad o entidad ambiental?</h2>
+        <p>
+          Ingresa con tu correo institucional y código de seguridad para reportar datos
+          de calidad del agua (pH, turbidez, metales, etc.). Solo tú puedes activar alertas oficiales.
+        </p>
+        <a href="{{ url_for('report_new') }}" class="sa-btn sa-btn-secondary">
+          Panel de entidades oficiales
+        </a>
+      </article>
+
+      <article class="sa-info-card">
+        <h2>Transparencia y tranquilidad</h2>
+        <ul>
+          <li>Alertas focalizadas por municipio.</li>
+          <li>Lenguaje sencillo para la ciudadanía.</li>
+          <li>Enlaces a material educativo sobre calidad del agua.</li>
+        </ul>
+      </article>
+    </aside>
+  </main>
+
+  <footer class="sa-footer">
+    AquaGuardian · Proyecto académico – Monitoreo ciudadano del agua en el Páramo de Santurbán
+  </footer>
+
 </body>
 </html>

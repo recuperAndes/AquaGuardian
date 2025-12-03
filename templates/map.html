@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa de monitoreo – Páramo de Santurbán</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <!-- Leaflet CSS (mapa interactivo) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+</head>
+<body>
+
+<header class="sa-header">
+  <div class="sa-header-left">
+    <img src="{{ url_for('static', filename='img/logo-sensor-andino.png') }}" 
+         alt="Logo AquaGuardian" class="sa-logo-small">
+    <span class="sa-logo-text">AquaGuardian</span>
+    <nav class="sa-nav">
+      <a href="{{ url_for('index') }}">Inicio</a>
+      <a href="{{ url_for('login') }}">Registrarme</a>
+    </nav>
+  </div>
+</header>
+
+<main class="sa-map-layout">
+  <section class="sa-map-panel">
+    <h1>Mapa del Páramo de Santurbán y municipios asociados</h1>
+    <p class="sa-map-text">
+      Este mapa muestra el área del Páramo de Santurbán y los municipios de Santander
+      y Norte de Santander que reciben agua de esta zona, como Bucaramanga, Floridablanca,
+      Girón, Piedecuesta, California, Vetas, Suratá, Tona, Charta, Matanza, entre otros.
+    </p>
+
+    <!-- Contenedor del mapa interactivo -->
+    <div id="map"></div>
+
+    <div class="sa-map-legend">
+      <h2>Leyenda</h2>
+      <ul>
+        <li><span class="legend-dot legend-normal"></span> Municipios abastecidos por Santurbán</li>
+        <li><span class="legend-dot" style="background:#ffb300;"></span> Área aproximada del Páramo de Santurbán</li>
+        <li><span class="legend-dot" style="background:#e53935;"></span> Ejemplos de incidentes recientes</li>
+      </ul>
+    </div>
+  </section>
+
+  <aside class="sa-map-side">
+    <article class="sa-info-card">
+      <h2>¿Cómo usar este mapa para registrarte?</h2>
+      <p>
+        Antes de registrarte, ubica tu municipio en el mapa y verifica si hace parte
+        de la zona de influencia del Páramo de Santurbán.
+      </p>
+      <p>
+        Luego, en el formulario de registro, selecciona el <strong>mismo municipio</strong>.
+        Así te llegarán solo las alertas que realmente te afectan.
+      </p>
+      <a href="{{ url_for('login') }}" class="sa-btn sa-btn-primary">
+        Ir a registrarme
+      </a>
+    </article>
+  </aside>
+</main>
+
+<footer class="sa-footer">
+  Mapa de referencia ciudadana · AquaGuardian
+</footer>
+
+<!-- Leaflet JS -->
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<script>
+  // Crear el mapa centrado aproximadamente en el Páramo de Santurbán
+  // (coordenadas aproximadas en el Nudo de Santurbán)
+  var map = L.map('map').setView([7.25, -72.95], 9);
+
+  // Capa base (tipo Google Maps pero de OpenStreetMap)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Área aproximada del Páramo de Santurbán (círculo)
+  var santurbanCircle = L.circle([7.25, -72.95], {
+    radius: 20000, // en metros (~20 km)
+    color: '#ffb300',
+    fillColor: '#ffb300',
+    fillOpacity: 0.15
+  }).addTo(map);
+
+  santurbanCircle.bindPopup(
+    '<strong>Páramo de Santurbán</strong><br>Zona de recarga hídrica que abastece a varios municipios de Santander y Norte de Santander.'
+  );
+
+  // Municipios importantes alrededor (coordenadas aproximadas)
+  var municipios = [
+    {
+      nombre: 'Bucaramanga',
+      coords: [7.1193, -73.1227],
+      desc: 'Capital de Santander. Recibe agua de Santurbán.'
+    },
+    {
+      nombre: 'Floridablanca',
+      coords: [7.0622, -73.0867],
+      desc: 'Municipio del área metropolitana de Bucaramanga.'
+    },
+    {
+      nombre: 'Girón',
+      coords: [7.0682, -73.1686],
+      desc: 'Municipio colonial conectado al sistema de Santurbán.'
+    },
+    {
+      nombre: 'Piedecuesta',
+      coords: [6.9874, -73.0495],
+      desc: 'Municipio con fuerte relación hídrica con Santurbán.'
+    },
+    {
+      nombre: 'California',
+      coords: [7.3472, -72.9756],
+      desc: 'Municipio de alta montaña dentro del área de influencia.'
+    },
+    {
+      nombre: 'Vetas',
+      coords: [7.3081, -72.8680],
+      desc: 'Municipio histórico minero en la zona de páramo.'
+    },
+    {
+      nombre: 'Suratá',
+      coords: [7.3660, -72.9900],
+      desc: 'Municipio vinculado a la cuenca del río Suratá.'
+    },
+    {
+      nombre: 'Tona (incluye Berlín)',
+      coords: [7.2000, -72.9500],
+      desc: 'Zona de acceso al páramo, conocida por el corregimiento de Berlín.'
+    },
+    {
+      nombre: 'Charta',
+      coords: [7.2820, -72.9660],
+      desc: 'Municipio de montaña cercano al área de páramo.'
+    },
+    {
+      nombre: 'Matanza',
+      coords: [7.3210, -73.0160],
+      desc: 'Municipio de la cuenca alta que se beneficia de Santurbán.'
+    }
+  ];
+
+  municipios.forEach(function(m) {
+    L.marker(m.coords)
+      .addTo(map)
+      .bindPopup(
+        '<strong>' + m.nombre + '</strong><br>' + m.desc
+      );
+  });
+
+  // Ejemplo de marcador de incidente reciente (puedes moverlo o quitarlo)
+  var incidenteEjemplo = L.marker([7.20, -73.0], {
+    title: 'Incidente de ejemplo'
+  }).addTo(map);
+
+  incidenteEjemplo.bindPopup(
+    '<strong>Incidente de ejemplo</strong><br>' +
+    'Aumento de turbidez por lluvias intensas. Este tipo de eventos generaría una alerta para los municipios conectados.'
+  );
+</script>
+
+</body>
+</html>

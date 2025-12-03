@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Alertas recientes – AquaGuardian</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="sa-header">
+  <div class="sa-header-left">
+    <img src="{{ url_for('static', filename='img/logo-sensor-andino.png') }}" 
+         alt="Logo AquaGuardian" class="sa-logo-small">
+    <span class="sa-logo-text">AquaGuardian</span>
+    <nav class="sa-nav">
+      <a href="{{ url_for('index') }}">Inicio</a>
+      <a href="{{ url_for('mapa') }}">Mapa Santurbán</a>
+    </nav>
+  </div>
+</header>
+
+<main class="sa-hero" style="grid-template-columns: 1fr;">
+  <section class="sa-hero-content">
+    <h1>Alertas recientes</h1>
+    <p class="sa-hero-text">
+      Este módulo muestra un resumen de los incidentes registrados por las entidades
+      ambientales oficiales. Para la demo, puedes explicar que las alertas se envían
+      principalmente por correo, de forma personalizada por municipio.
+    </p>
+
+    <article class="sa-info-card">
+      <h2>Ejemplo de alerta</h2>
+      <p><strong>Municipio:</strong> Bucaramanga</p>
+      <p><strong>Nivel:</strong> Precaución</p>
+      <p><strong>Descripción:</strong> Aumento temporal de turbidez por lluvias intensas.
+        Se recomienda hervir el agua antes de consumirla hasta nuevo aviso.</p>
+    </article>
+  </section>
+</main>
+
+<footer class="sa-footer">
+  Alertas informativas · AquaGuardian
+</footer>
+
+</body>
+</html>

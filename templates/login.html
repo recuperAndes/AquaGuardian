@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de ciudadanos – AquaGuardian</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="sa-header">
+  <div class="sa-header-left">
+    <img src="{{ url_for('static', filename='img/logo-sensor-andino.png') }}" 
+         alt="Logo AquaGuardian" class="sa-logo-small">
+    <span class="sa-logo-text">AquaGuardian</span>
+    <nav class="sa-nav">
+      <a href="{{ url_for('index') }}">Inicio</a>
+      <a href="{{ url_for('mapa') }}">Mapa Santurbán</a>
+    </nav>
+  </div>
+</header>
+
+<main class="sa-hero" style="grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);">
+  <section class="sa-hero-content">
+    <h1>Regístrate para recibir alertas</h1>
+    <p class="sa-hero-text">
+      Al registrarte, recibirás correos solo cuando un incidente de calidad del agua
+      afecte el <strong>municipio que elijas</strong>. No enviaremos spam ni alertas de lugares
+      que no te correspondan.
+    </p>
+
+    {% if mensaje %}
+      <div class="sa-alert sa-alert-error">{{ mensaje }}</div>
+    {% endif %}
+
+    <form method="POST" class="sa-info-card" style="border-left:none;">
+      <h2>Tus datos</h2>
+
+      <label for="nombre">Nombre completo</label><br>
+      <input type="text" id="nombre" name="nombre" required
+             style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+
+      <label for="email">Correo electrónico</label><br>
+      <input type="email" id="email" name="email" required
+             style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+
+      <label for="municipio">Municipio donde vives</label><br>
+      <select id="municipio" name="municipio" required
+              style="width:100%; padding:8px 10px; margin:4px 0 14px; border-radius:8px; border:1px solid #cdd9e3;">
+        <option value="" disabled selected>Selecciona tu municipio</option>
+        <option value="Bucaramanga">Bucaramanga</option>
+        <option value="Floridablanca">Floridablanca</option>
+        <option value="Girón">Girón</option>
+        <option value="Piedecuesta">Piedecuesta</option>
+        <option value="California">California</option>
+        <option value="Vetas">Vetas</option>
+        <option value="Suratá">Suratá</option>
+        <option value="Tona">Tona</option>
+        <option value="Charta">Charta</option>
+        <option value="Matanza">Matanza</option>
+        <option value="Otros">Otros</option>
+      </select>
+
+      <p style="font-size:0.85rem; color:#60758a; margin-bottom:12px;">
+        Podrás cambiar tu municipio más adelante si te mudas a otra zona.
+      </p>
+
+      <button type="submit" class="sa-btn sa-btn-primary">
+        Guardar registro y activar alertas
+      </button>
+    </form>
+  </section>
+
+  <aside class="sa-hero-info">
+    <article class="sa-info-card">
+      <h2>¿Qué tipo de correos recibiré?</h2>
+      <p>
+        Solo enviaremos alertas cuando una entidad oficial reporte:
+      </p>
+      <ul>
+        <li>Cambios en el <strong>pH</strong> del agua.</li>
+        <li>Aumento de <strong>turbidez</strong> (agua más turbia o con sedimentos).</li>
+        <li>Posible presencia de <strong>metales pesados</strong> u otros riesgos.</li>
+      </ul>
+      <p>
+        Cada alerta incluirá un enlace a un <strong>afiche explicativo</strong>
+        donde podrás entender en palabras sencillas qué significa cada dato.
+      </p>
+    </article>
+  </aside>
+</main>
+
+<footer class="sa-footer">
+  Inscripción ciudadana · AquaGuardian
+</footer>
+
+</body>
+</html>
+
