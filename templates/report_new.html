@@ -65,6 +65,7 @@
       <label for="municipio_alerta">Municipio afectado</label><br>
       <select id="municipio_alerta" name="municipio_alerta" required
               style="width:100%; padding:8px 10px; margin:4px 0 10px; border-radius:8px; border:1px solid #cdd9e3;">
+        <option value="" disabled selected>Selecciona un municipio</option>
         {% for m in municipios_disponibles %}
           <option value="{{ m }}">{{ m }}</option>
         {% endfor %}
@@ -103,7 +104,7 @@
         a un lenguaje sencillo (ej. “el agua está más ácida de lo normal”).
       </p>
       <p>
-        Además, incluye un enlace a un <strong>afiche educativo</strong> donde se explica
+        Además, incluye el <strong>afiche educativo</strong> donde se explica
         qué es el pH, qué significa la turbidez y por qué son importantes.
       </p>
     </article>
@@ -116,3 +117,4 @@
 
 </body>
 </html>
+
