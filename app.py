@@ -1,11 +1,86 @@
 from flask import Flask, render_template, request, url_for, redirect, session
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage  # para incrustar la imagen del afiche
 
 app = Flask(__name__)
 app.secret_key = "cambia-esta-clave-despues"  # necesaria para manejar sesión
 
-# Lista (en memoria) de ciudadanos registrados que recibirían correos
-registered_users = set()  # guardaremos solo los correos
+# Lista de ciudadanos registrados:
+# cada elemento será: {"nombre": ..., "email": ..., "municipio": ...}
+registered_users = []
 
+
+# ------------------ FUNCIÓN PARA ENVIAR CORREOS ------------------ #
+
+def enviar_correo(destinatario, asunto, cuerpo_html, imagen_path=None):
+    """
+    Envía un correo en HTML (con versión de texto plano por compatibilidad)
+    y opcionalmente incrusta una imagen (afiche).
+
+    Usa SMTP con STARTTLS en el puerto 587, que es lo que suele funcionar
+    mejor (como en RecuperAndes).
+    """
+
+    remitente = os.environ.get("EMAIL_USER")
+    password = os.environ.get("EMAIL_PASS")
+
+    print("DEBUG EMAIL_USER:", remitente)  # Para verificar que sí se cargó
+
+    if not remitente or not password:
+        print("ERROR: No se encontraron EMAIL_USER o EMAIL_PASS en las variables de entorno.")
+        return
+
+    # Correo multipart/related: HTML + imagen inline
+    msg = MIMEMultipart("related")
+    msg["From"] = remitente
+    msg["To"] = destinatario
+    msg["Subject"] = asunto
+
+    # Parte alternativa: texto plano + HTML
+    msg_alternative = MIMEMultipart("alternative")
+    msg.attach(msg_alternative)
+
+    # Texto plano mínimo
+    texto_plano = "Este mensaje contiene información en formato HTML. Si no lo ves bien, revisa tu cliente de correo."
+    msg_alternative.attach(MIMEText(texto_plano, "plain", "utf-8"))
+
+    # Versión HTML
+    msg_alternative.attach(MIMEText(cuerpo_html, "html", "utf-8"))
+
+    # Adjuntar imagen incrustada si se pasa la ruta
+    if imagen_path:
+        try:
+            # Asegurarnos de que la ruta es relativa al archivo actual
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            ruta_imagen = os.path.join(base_dir, imagen_path)
+
+            with open(ruta_imagen, "rb") as img_file:
+                img = MIMEImage(img_file.read())
+                img.add_header("Content-ID", "<afiche>")
+                img.add_header("Content-Disposition", "inline", filename="afiche_aguaguardian.png")
+                msg.attach(img)
+            print("DEBUG: Imagen del afiche cargada correctamente.")
+        except Exception as e:
+            print("Error cargando la imagen del afiche:", repr(e))
+
+    # -------- Enviar usando SMTP con STARTTLS (puerto 587) -------- #
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(remitente, password)
+            server.send_message(msg)
+
+        print(f"Correo enviado correctamente a {destinatario}")
+    except Exception as e:
+        print("ERROR enviando correo:", repr(e))
+
+
+# ------------------ RUTAS PRINCIPALES ------------------ #
 
 # ---------- RUTA PRINCIPAL ----------
 @app.route("/")
@@ -40,13 +115,82 @@ def login():
     if request.method == "POST":
         nombre = request.form.get("nombre")
         email = request.form.get("email")
+        municipio = request.form.get("municipio")  # viene del <select name="municipio">
 
-        if not email:
-            mensaje = "Por favor ingresa un correo electrónico."
+        if not email or not municipio:
+            mensaje = "Por favor ingresa tu correo y selecciona tu municipio."
         else:
-            # Registramos al usuario en la lista de ciudadanos
-            registered_users.add(email.strip().lower())
-            session["user_email"] = email.strip().lower()
+            email = email.strip().lower()
+
+            # Buscar si ya estaba registrado para actualizar
+            encontrado = False
+            for u in registered_users:
+                if u["email"] == email:
+                    u["nombre"] = nombre
+                    u["municipio"] = municipio
+                    encontrado = True
+                    break
+
+            if not encontrado:
+                registered_users.append({
+                    "nombre": nombre,
+                    "email": email,
+                    "municipio": municipio
+                })
+
+            session["user_email"] = email
+
+            # --------- Correo automático de confirmación (con afiche) ---------
+            asunto = "Registro exitoso – Red de Alertas Santurbán"
+            cuerpo_html = f"""
+            <html>
+            <body style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+              <p>Hola <strong>{nombre}</strong>,</p>
+
+              <p>
+                Te has registrado correctamente en <strong>AquaGuardian</strong>, la red ciudadana que monitorea
+                la calidad del agua que llega a tu municipio desde el Páramo de Santurbán.
+              </p>
+
+              <p>
+                <strong>Municipio registrado:</strong> {municipio}.
+              </p>
+
+              <p>
+                A partir de ahora, solo recibirás correos cuando se reporte un incidente
+                que afecte directamente a <strong>{municipio}</strong>. No enviaremos alertas de otros pueblos
+                para evitar ruido y desinformación.
+              </p>
+
+              <p>
+                Cuando te llegue una alerta, verás palabras como <strong>pH</strong>, <strong>turbidez</strong> o
+                <strong>metales</strong>. Si no las conoces, no te preocupes:
+                en este afiche las explicamos con dibujos y ejemplos sencillos:
+              </p>
+
+              <div style="margin: 18px 0; text-align: center;">
+                <img src="cid:afiche" alt="Afiche explicativo sobre la calidad del agua"
+                     style="max-width: 600px; width: 100%; border-radius: 12px;">
+              </div>
+
+              <p>
+                Gracias por ser parte de esta red que cuida el agua 💧
+              </p>
+
+              <p style="font-size: 0.85rem; color: #666;">
+                AquaGuardian – Páramo de Santurbán
+              </p>
+            </body>
+            </html>
+            """
+
+            enviar_correo(
+                email,
+                asunto,
+                cuerpo_html,
+                imagen_path="static/img/afiche_aguaguardian.png"
+            )
+
             # Redirigimos a la página principal después de login
             return redirect(url_for("index"))
 
@@ -73,6 +217,7 @@ def report_new():
         incidente = request.form.get("incidente")
         nivel = request.form.get("nivel")
         descripcion = request.form.get("descripcion")
+        municipio_alerta = request.form.get("municipio_alerta")  # municipio afectado
 
         # Pasamos el correo a minúsculas para evitar problemas de mayúsculas/minúsculas
         email = (email or "").lower()
@@ -101,17 +246,84 @@ def report_new():
 
         # Validación simulada
         if autorizado_por_dominio and codigo_correcto:
-            # Aquí simulamos el envío de correos a todos los ciudadanos registrados
-            num_destinatarios = len(registered_users)
             print("INCIDENTE REGISTRADO POR ENTIDAD OFICIAL:")
-            print(nombre, email, org, incidente, nivel, descripcion)
-            print("Se enviaría alerta a estos correos ciudadanos:")
-            for u in registered_users:
-                print("  -", u)
+            print(nombre, email, org, incidente, nivel, descripcion, "Municipio:", municipio_alerta)
+
+            # Filtrar solo ciudadanos del municipio afectado
+            destinatarios = [u for u in registered_users if u["municipio"] == municipio_alerta]
+
+            print(f"Se enviaría alerta SOLO a ciudadanos del municipio {municipio_alerta}:")
+            for u in destinatarios:
+                print("  -", u["email"])
+
+                # --------- Correo automático de alerta (con afiche) ---------
+                asunto = f"ALERTA DE AGUA – {municipio_alerta} – Nivel {nivel}"
+                cuerpo_html = f"""
+                <html>
+                <body style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                  <p>Hola <strong>{u['nombre']}</strong>,</p>
+
+                  <p>
+                    Una entidad ambiental oficial (<strong>{org}</strong>) ha reportado un incidente
+                    de calidad del agua que afecta al municipio de <strong>{municipio_alerta}</strong>.
+                  </p>
+
+                  <p><strong>Resumen del incidente:</strong></p>
+                  <ul>
+                    <li><strong>Tipo de incidente:</strong> {incidente}</li>
+                    <li><strong>Nivel de alerta:</strong> {nivel}</li>
+                  </ul>
+
+                  <p>
+                    Descripción técnica (para las autoridades y equipos técnicos):
+                  </p>
+                  <p style="background:#f5f8fa; padding:10px; border-radius:8px;">
+                    {descripcion}
+                  </p>
+
+                  <p>
+                    ¿Qué significa esto para ti? La entidad detectó cambios en indicadores como
+                    pH, turbidez o metales. Esto puede indicar que el agua está un poco diferente a lo normal.
+                  </p>
+
+                  <p>
+                    <strong>Recomendación principal:</strong><br>
+                    Revisa las indicaciones de tu acueducto local y, si es necesario,
+                    hierve el agua antes de consumirla.
+                  </p>
+
+                  <p>
+                    Si quieres entender mejor qué significan estos términos técnicos,
+                    revisa este afiche explicativo con lenguaje sencillo:
+                  </p>
+
+                  <div style="margin: 18px 0; text-align: center;">
+                    <img src="cid:afiche" alt="Afiche explicativo sobre la calidad del agua"
+                         style="max-width: 600px; width: 100%; border-radius: 12px;">
+                  </div>
+
+                  <p>
+                    Esta alerta se envía solo a personas registradas en <strong>{municipio_alerta}</strong>
+                    para no generar pánico en otros municipios a los que no afecta el incidente.
+                  </p>
+
+                  <p style="font-size: 0.85rem; color: #666;">
+                    Red de Alertas Santurbán · AquaGuardian 💧
+                  </p>
+                </body>
+                </html>
+                """
+
+                enviar_correo(
+                    u["email"],
+                    asunto,
+                    cuerpo_html,
+                    imagen_path="static/img/afiche_aguaguardian.png"
+                )
 
             mensaje = (
                 f"El incidente ha sido registrado correctamente. "
-                f"{num_destinatarios} ciudadanos registrados recibirían una alerta por correo."
+                f"{len(destinatarios)} ciudadanos de {municipio_alerta} han recibido una alerta por correo."
             )
             tipo = "ok"
         else:
@@ -120,8 +332,18 @@ def report_new():
             )
             tipo = "error"
 
-    return render_template("report_new.html", mensaje=mensaje, tipo=tipo)
+    # Lista de municipios para el <select> del formulario de entidades
+    municipios_disponibles = sorted({u["municipio"] for u in registered_users}) or [
+        "Bucaramanga", "Floridablanca", "Girón", "Piedecuesta",
+        "California", "Vetas", "Suratá", "Tona", "Charta", "Matanza"
+    ]
+
+    return render_template("report_new.html",
+                           mensaje=mensaje,
+                           tipo=tipo,
+                           municipios_disponibles=municipios_disponibles)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    # Replit normalmente respeta este host y puerto
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -17,54 +17,67 @@ registered_users = []
 
 def enviar_correo(destinatario, asunto, cuerpo_html, imagen_path=None):
     """
-    Envía un correo en HTML y opcionalmente incrusta una imagen.
-    Necesita que en Replit estén configuradas las variables:
-    - EMAIL_USER
-    - EMAIL_PASS  (contraseña de aplicación de Gmail)
+    Envía un correo en HTML (con versión de texto plano por compatibilidad)
+    y opcionalmente incrusta una imagen (afiche).
+
+    Usa SMTP con STARTTLS en el puerto 587, que es lo que suele funcionar
+    mejor (como en RecuperAndes).
     """
 
     remitente = os.environ.get("EMAIL_USER")
     password = os.environ.get("EMAIL_PASS")
 
+    print("DEBUG EMAIL_USER:", remitente)  # Para verificar que sí se cargó
+
     if not remitente or not password:
-        print("ERROR: No se encontraron EMAIL_USER o EMAIL_PASS en los Secrets de Replit.")
+        print("ERROR: No se encontraron EMAIL_USER o EMAIL_PASS en las variables de entorno.")
         return
 
-    # Estructura del correo: multipart/related (HTML + imagen)
+    # Correo multipart/related: HTML + imagen inline
     msg = MIMEMultipart("related")
     msg["From"] = remitente
     msg["To"] = destinatario
     msg["Subject"] = asunto
 
-    # Parte "alternative": texto plano (muy simple) + HTML
+    # Parte alternativa: texto plano + HTML
     msg_alternative = MIMEMultipart("alternative")
     msg.attach(msg_alternative)
 
-    # Texto plano mínimo por si el cliente no soporta HTML
-    msg_alternative.attach(MIMEText("Este correo contiene información en formato HTML.", "plain", "utf-8"))
-    # Versión HTML real
+    # Texto plano mínimo
+    texto_plano = "Este mensaje contiene información en formato HTML. Si no lo ves bien, revisa tu cliente de correo."
+    msg_alternative.attach(MIMEText(texto_plano, "plain", "utf-8"))
+
+    # Versión HTML
     msg_alternative.attach(MIMEText(cuerpo_html, "html", "utf-8"))
 
     # Adjuntar imagen incrustada si se pasa la ruta
     if imagen_path:
         try:
-            with open(imagen_path, "rb") as img_file:
+            # Asegurarnos de que la ruta es relativa al archivo actual
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            ruta_imagen = os.path.join(base_dir, imagen_path)
+
+            with open(ruta_imagen, "rb") as img_file:
                 img = MIMEImage(img_file.read())
-                # Content-ID que usaremos en el HTML: src="cid:afiche"
                 img.add_header("Content-ID", "<afiche>")
                 img.add_header("Content-Disposition", "inline", filename="afiche_aguaguardian.png")
                 msg.attach(img)
+            print("DEBUG: Imagen del afiche cargada correctamente.")
         except Exception as e:
-            print("Error cargando la imagen del afiche:", e)
+            print("Error cargando la imagen del afiche:", repr(e))
 
-    # Enviar el correo
+    # -------- Enviar usando SMTP con STARTTLS (puerto 587) -------- #
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
             server.login(remitente, password)
             server.send_message(msg)
-        print(f"Correo enviado a {destinatario}")
+
+        print(f"Correo enviado correctamente a {destinatario}")
     except Exception as e:
-        print(f"Error enviando correo a {destinatario}: {e}")
+        print("ERROR enviando correo:", repr(e))
 
 
 # ------------------ RUTAS PRINCIPALES ------------------ #
